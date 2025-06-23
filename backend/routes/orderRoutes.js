@@ -41,6 +41,27 @@ router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('user', 'name email')
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' })
+    }
+
+    const isOwner = order.user._id.toString() === req.user.userId
+    const isAdmin = req.user.role === 'admin'
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'Not authorized to view this order' })
+    }
+
+    res.json(order)
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.userId }).sort({
