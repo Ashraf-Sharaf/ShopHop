@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require("../models/Product");
 
 const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 router.get("/", async (req, res) => {
   try {
@@ -23,7 +24,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", adminMiddleware, authMiddleware, async (req, res) => {
   try {
     const { name, category, price, image, stock, description, soldCount } =
       req.body;
@@ -43,7 +44,7 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", adminMiddleware, authMiddleware, async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
@@ -58,7 +59,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", adminMiddleware, authMiddleware, async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct)

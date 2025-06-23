@@ -5,6 +5,9 @@ const User = require("../models/User");
 
 const router = express.Router();
 
+const adminMiddleware = require("../middleware/adminMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
+
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -63,7 +66,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-const authMiddleware = require("../middleware/authMiddleware");
+
 
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
@@ -92,6 +95,15 @@ router.put("/profile", authMiddleware, async (req, res) => {
       message: "Profile updated",
       user: { name: user.name, email: user.email, avatar: user.avatar },
     });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

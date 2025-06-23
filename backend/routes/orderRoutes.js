@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 router.post("/", authMiddleware, async (req, res) => {
   try {
@@ -28,6 +29,15 @@ router.post("/", authMiddleware, async (req, res) => {
     res.status(201).json(createdOrder);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const orders = await Order.find().populate("user", "email");
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -62,22 +72,31 @@ router.put("/:id/deliver", authMiddleware, async (req, res) => {
 
 router.put("/:id/cancel", authMiddleware, async (req, res) => {
   try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      user: req.user.userId,
-    });
-
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: "Order not found" });
-    if (order.status !== "pending")
+
+    const isOwner = order.user.toString() === req.user.userId;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to cancel this order" });
+    }
+
+    if (order.status !== "pending") {
       return res
         .status(400)
         .json({ message: "Only pending orders can be cancelled" });
+    }
 
     order.status = "cancelled";
     order.cancelledAt = new Date();
 
     await order.save();
-    res.json({ message: "Order cancelled successfully" });
+
+    const cancelledBy = isAdmin ? "admin" : "user";
+    res.json({ message: `Order cancelled successfully by ${cancelledBy}` });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
