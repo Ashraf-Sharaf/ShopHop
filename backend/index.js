@@ -3,6 +3,9 @@ const cors = require('cors')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 
+const productRoutes = require('./routes/productRoutes')
+
+
 dotenv.config()
 
 const app = express()
@@ -25,3 +28,6 @@ mongoose.connect(process.env.MONGO_URI, {
 app.get('/', (req, res) => {
   res.send('ShopHop backend is live')
 })
+
+
+app.use('/api/products', productRoutes)
