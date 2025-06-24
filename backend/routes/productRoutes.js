@@ -24,7 +24,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", adminMiddleware, authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { name, category, price, image, stock, description, soldCount } =
       req.body;
@@ -44,7 +44,7 @@ router.post("/", adminMiddleware, authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/:id", adminMiddleware, authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
@@ -59,7 +59,7 @@ router.put("/:id", adminMiddleware, authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/:id", adminMiddleware, authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct)
