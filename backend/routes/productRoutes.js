@@ -38,7 +38,9 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
       soldCount,
     });
     const savedProduct = await product.save();
-    res.status(201).json(savedProduct);
+    res
+      .status(201)
+      .json({ message: "Product added successfully", savedProduct });
   } catch (error) {
     res.status(400).json({ message: "Invalid data", error: error.message });
   }
@@ -53,7 +55,7 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
     );
     if (!updatedProduct)
       return res.status(404).json({ message: "Product not found" });
-    res.json(updatedProduct);
+    res.json({ message: "Product edited successfully", updatedProduct });
   } catch (error) {
     res.status(400).json({ message: "Invalid data", error: error.message });
   }
@@ -64,7 +66,7 @@ router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct)
       return res.status(404).json({ message: "Product not found" });
-    res.json({ message: "Product deleted" });
+    res.json({ message: "Product deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

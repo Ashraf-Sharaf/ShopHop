@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
+
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const { orderItems, shippingAddress, notes } = req.body;
@@ -26,52 +27,69 @@ router.post("/", authMiddleware, async (req, res) => {
     });
 
     const createdOrder = await order.save();
-    res.status(201).json(createdOrder);
+    res
+      .status(201)
+      .json({ message: "Order placed successfully", order: createdOrder });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create order", error: error.message });
   }
 });
+
 
 router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const orders = await Order.find().populate("user", "email");
-    res.json(orders);
+    res.json({ message: "All orders fetched successfully", orders });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch orders", error: error.message });
   }
 });
 
-router.get('/:id', authMiddleware, async (req, res) => {
+
+router.get("/:id", authMiddleware, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate('user', 'name email')
+    const order = await Order.findById(req.params.id).populate(
+      "user",
+      "name email"
+    );
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' })
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    const isOwner = order.user._id.toString() === req.user.userId
-    const isAdmin = req.user.role === 'admin'
+    const isOwner = order.user._id.toString() === req.user.userId;
+    const isAdmin = req.user.role === "admin";
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: 'Not authorized to view this order' })
+      return res.status(403).json({ message: "Access denied: not your order" });
     }
 
-    res.json(order)
+    res.json({ message: "Order fetched successfully", order });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    res
+      .status(500)
+      .json({ message: "Failed to fetch order", error: error.message });
   }
-})
+});
+
 
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.userId }).sort({
       createdAt: -1,
     });
-    res.json(orders);
+    res.json({ message: "Your orders fetched successfully", orders });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch your orders", error: error.message });
   }
 });
+
 
 router.put("/:id/deliver", authMiddleware, async (req, res) => {
   try {
@@ -79,15 +97,23 @@ router.put("/:id/deliver", authMiddleware, async (req, res) => {
       _id: req.params.id,
       user: req.user.userId,
     });
-    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     order.status = "delivered";
     order.deliveredAt = new Date();
 
     await order.save();
-    res.json({ message: "Order marked as delivered" });
+    res.json({ message: "Order marked as delivered successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({
+        message: "Failed to mark order as delivered",
+        error: error.message,
+      });
   }
 });
 
@@ -100,9 +126,7 @@ router.put("/:id/cancel", authMiddleware, async (req, res) => {
     const isAdmin = req.user.role === "admin";
 
     if (!isOwner && !isAdmin) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to cancel this order" });
+      return res.status(403).json({ message: "Access denied: not your order" });
     }
 
     if (order.status !== "pending") {
@@ -116,10 +140,11 @@ router.put("/:id/cancel", authMiddleware, async (req, res) => {
 
     await order.save();
 
-    const cancelledBy = isAdmin ? "admin" : "user";
-    res.json({ message: `Order cancelled successfully by ${cancelledBy}` });
+    res.json({ message: `Order cancelled successfully`, order });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({ message: "Failed to cancel order", error: error.message });
   }
 });
 
