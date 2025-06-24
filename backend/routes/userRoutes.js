@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 
 const router = express.Router();
@@ -8,65 +9,82 @@ const router = express.Router();
 const adminMiddleware = require("../middleware/adminMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
 
-router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: "Please fill all fields" });
-  }
-
-  try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+router.post(
+  "/register",
+  [
+    body("name").trim().notEmpty().withMessage("Name is required"),
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const { name, email, password } = req.body;
 
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    try {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
 
-    await user.save();
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = new User({
+        name,
+        email,
+        password: hashedPassword,
+      });
+
+      await user.save();
+      res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
+);
 
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: "Please fill all fields" });
-  }
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+router.post(
+  "/login",
+  [
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    const { email, password } = req.body;
+
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      res.json({ token });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
     }
-
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
   }
-});
-
-
+);
 
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
@@ -78,32 +96,46 @@ router.get("/profile", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/profile", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+router.put(
+  "/profile",
+  authMiddleware,
+  [
+    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+    body("email").optional().isEmail().withMessage("Valid email is required"),
+    body("avatar").optional().isString().withMessage("Avatar must be a string"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-    const { name, email, avatar } = req.body;
+    try {
+      const user = await User.findById(req.user.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (avatar) user.avatar = avatar;
+      const { name, email, avatar } = req.body;
 
-    await user.save();
+      if (name) user.name = name;
+      if (email) user.email = email;
+      if (avatar) user.avatar = avatar;
 
-    res.json({
-      message: "Profile updated",
-      user: { name: user.name, email: user.email, avatar: user.avatar },
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+      await user.save();
+
+      res.json({
+        message: "Profile updated",
+        user: { name: user.name, email: user.email, avatar: user.avatar },
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
+);
 
 router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    res.json(users);
+    res.json({ message: "Users fetched successfully", users });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
