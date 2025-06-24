@@ -26,8 +26,13 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, category, price, image, stock, description, soldCount } =
-      req.body;
+    const { name, category, price, image, stock, description, soldCount } = req.body
+
+    const existingProduct = await Product.findOne({ name: name.trim() })
+    if (existingProduct) {
+      return res.status(400).json({ message: "Product with this name already exists" })
+    }
+
     const product = new Product({
       name,
       category,
@@ -35,16 +40,16 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
       image,
       stock,
       description,
-      soldCount,
-    });
-    const savedProduct = await product.save();
-    res
-      .status(201)
-      .json({ message: "Product added successfully", savedProduct });
+      soldCount
+    })
+
+    const savedProduct = await product.save()
+    res.status(201).json({ message: "Product created successfully", product: savedProduct })
   } catch (error) {
-    res.status(400).json({ message: "Invalid data", error: error.message });
+    res.status(400).json({ message: "Invalid product data", error: error.message })
   }
-});
+})
+
 
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
