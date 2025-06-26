@@ -1,9 +1,5 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { body, validationResult } = require("express-validator");
-const User = require("../models/User");
-
+const { body } = require("express-validator");
 const router = express.Router();
 
 const adminMiddleware = require("../middleware/adminMiddleware");
@@ -11,6 +7,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const validateMiddleware = require("../middleware/validateMiddleware");
 
 const userController = require("../controllers/userController");
+
 router.post(
   "/register",
   [
