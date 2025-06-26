@@ -8,6 +8,7 @@ const router = express.Router();
 
 const adminMiddleware = require("../middleware/adminMiddleware");
 const authMiddleware = require("../middleware/authMiddleware");
+const validateMiddleware = require("../middleware/validateMiddleware");
 
 router.post(
   "/register",
@@ -18,12 +19,8 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
   ],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const { name, email, password } = req.body;
 
     try {
@@ -54,12 +51,8 @@ router.post(
     body("email").isEmail().withMessage("Valid email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const { email, password } = req.body;
 
     try {
@@ -103,12 +96,8 @@ router.put(
     body("name").optional().notEmpty().withMessage("Name cannot be empty"),
     body("email").optional().isEmail().withMessage("Valid email is required"),
     body("avatar").optional().isString().withMessage("Avatar must be a string"),
-  ],
+  ],validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
 
     try {
       const user = await User.findById(req.user.userId);
