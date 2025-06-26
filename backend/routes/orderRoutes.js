@@ -4,36 +4,35 @@ const router = express.Router();
 const Order = require("../models/Order");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const validateMiddleware = require("../middleware/validateMiddleware");
 
 router.post(
   "/",
   authMiddleware,
-  body("orderItems")
-    .isArray({ min: 1 })
-    .withMessage("Order items must be a non-empty array"),
-  body("orderItems.*.product")
-    .notEmpty()
-    .withMessage("Each order item must have a product ID"),
-  body("orderItems.*.name")
-    .notEmpty()
-    .withMessage("Each order item must have a name"),
-  body("orderItems.*.price")
-    .isFloat({ gt: 0 })
-    .withMessage("Each order item must have a valid price"),
-  body("orderItems.*.quantity")
-    .isInt({ gt: 0 })
-    .withMessage("Each order item must have a quantity greater than zero"),
-  body("shippingAddress")
-    .notEmpty()
-    .withMessage("Shipping address is required"),
+  [
+    body("orderItems")
+      .isArray({ min: 1 })
+      .withMessage("Order items must be a non-empty array"),
+    body("orderItems.*.product")
+      .notEmpty()
+      .withMessage("Each order item must have a product ID"),
+    body("orderItems.*.name")
+      .notEmpty()
+      .withMessage("Each order item must have a name"),
+    body("orderItems.*.price")
+      .isFloat({ gt: 0 })
+      .withMessage("Each order item must have a valid price"),
+    body("orderItems.*.quantity")
+      .isInt({ gt: 0 })
+      .withMessage("Each order item must have a quantity greater than zero"),
+    body("shippingAddress")
+      .notEmpty()
+      .withMessage("Shipping address is required"),
+  ],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty())
-      return res.status(400).json({ errors: errors.array() });
-
     try {
       const { orderItems, shippingAddress, notes } = req.body;
-
       const totalPrice = orderItems.reduce(
         (acc, item) => acc + item.price * item.quantity,
         0
@@ -73,12 +72,9 @@ router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
 router.get(
   "/:id",
   authMiddleware,
-  param("id").isMongoId().withMessage("Invalid order ID"),
+  [param("id").isMongoId().withMessage("Invalid order ID")],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty())
-      return res.status(400).json({ errors: errors.array() });
-
     try {
       const order = await Order.findById(req.params.id).populate(
         "user",
@@ -121,12 +117,9 @@ router.get("/my", authMiddleware, async (req, res) => {
 router.put(
   "/:id/deliver",
   authMiddleware,
-  param("id").isMongoId().withMessage("Invalid order ID"),
+  [param("id").isMongoId().withMessage("Invalid order ID")],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty())
-      return res.status(400).json({ errors: errors.array() });
-
     try {
       const order = await Order.findOne({
         _id: req.params.id,
@@ -152,12 +145,9 @@ router.put(
 router.put(
   "/:id/cancel",
   authMiddleware,
-  param("id").isMongoId().withMessage("Invalid order ID"),
+  [param("id").isMongoId().withMessage("Invalid order ID")],
+  validateMiddleware,
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty())
-      return res.status(400).json({ errors: errors.array() });
-
     try {
       const order = await Order.findById(req.params.id);
       if (!order) return res.status(404).json({ message: "Order not found" });
