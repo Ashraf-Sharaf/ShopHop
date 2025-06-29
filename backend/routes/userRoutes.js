@@ -45,6 +45,6 @@ router.put(
   userController.updateProfile
 );
 
-router.get("/", authMiddleware, adminMiddleware, userController.getAllUsers);
+
 
 module.exports = router;

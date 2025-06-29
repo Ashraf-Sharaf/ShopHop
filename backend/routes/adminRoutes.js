@@ -11,4 +11,8 @@ router.get(
   adminController.getSummary
 );
 
+router.get("/all_users", authMiddleware, adminMiddleware, adminController.getAllUsers);
+
+router.get("/all_orders", authMiddleware, adminMiddleware, adminController.getAllOrders);
+
 module.exports = router;

@@ -34,8 +34,6 @@ router.post(
   orderController.createOrder
 );
 
-router.get("/", authMiddleware, adminMiddleware, orderController.getAllOrders);
-
 router.get(
   "/:id",
   authMiddleware,

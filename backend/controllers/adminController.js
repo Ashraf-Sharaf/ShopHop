@@ -44,3 +44,23 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: "user" }).select("-password");
+    res.json({ message: "Users fetched successfully", users });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().populate("user", "email name");
+    res.json({ message: "All orders fetched successfully", orders });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch orders", error: error.message });
+  }
+};
