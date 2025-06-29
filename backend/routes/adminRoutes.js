@@ -65,7 +65,7 @@ router.put(
 );
 
 router.delete(
-  "product/delete/:id",
+  "/product/delete/:id",
   authMiddleware,
   adminMiddleware,
   [param("id").isMongoId().withMessage("Invalid product ID")],
