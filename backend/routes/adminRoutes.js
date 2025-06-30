@@ -50,7 +50,7 @@ router.post(
 );
 
 router.put(
-  "/product/edit/:id",
+  "/product/:id/edit",
   authMiddleware,
   adminMiddleware,
   [
@@ -65,7 +65,7 @@ router.put(
 );
 
 router.delete(
-  "/product/delete/:id",
+  "/product/:id/delete",
   authMiddleware,
   adminMiddleware,
   [param("id").isMongoId().withMessage("Invalid product ID")],
