@@ -2,13 +2,12 @@ const express = require("express");
 const { body, param } = require("express-validator");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
-const adminMiddleware = require("../middleware/adminMiddleware");
 const validateMiddleware = require("../middleware/validateMiddleware");
 
 const orderController = require("../controllers/orderController");
 
 router.post(
-  "/",
+  "/add",
   authMiddleware,
   [
     body("orderItems")
@@ -35,7 +34,7 @@ router.post(
 );
 
 router.get(
-  "/:id",
+  "/single/:id",
   authMiddleware,
   [param("id").isMongoId().withMessage("Invalid order ID")],
   validateMiddleware,
@@ -45,7 +44,7 @@ router.get(
 router.get("/my", authMiddleware, orderController.getUserOrders);
 
 router.put(
-  "/:id/deliver",
+  "/single/:id/deliver",
   authMiddleware,
   [param("id").isMongoId().withMessage("Invalid order ID")],
   validateMiddleware,
@@ -53,7 +52,7 @@ router.put(
 );
 
 router.put(
-  "/:id/cancel",
+  "/single/:id/cancel",
   authMiddleware,
   [param("id").isMongoId().withMessage("Invalid order ID")],
   validateMiddleware,
