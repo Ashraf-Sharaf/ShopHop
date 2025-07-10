@@ -10,21 +10,6 @@ router.post(
   "/add",
   authMiddleware,
   [
-    body("orderItems")
-      .isArray({ min: 1 })
-      .withMessage("Order items must be a non-empty array"),
-    body("orderItems.*.product")
-      .notEmpty()
-      .withMessage("Each order item must have a product ID"),
-    body("orderItems.*.name")
-      .notEmpty()
-      .withMessage("Each order item must have a name"),
-    body("orderItems.*.price")
-      .isFloat({ gt: 0 })
-      .withMessage("Each order item must have a valid price"),
-    body("orderItems.*.quantity")
-      .isInt({ gt: 0 })
-      .withMessage("Each order item must have a quantity greater than zero"),
     body("shippingAddress")
       .notEmpty()
       .withMessage("Shipping address is required"),
@@ -32,6 +17,7 @@ router.post(
   validateMiddleware,
   orderController.createOrder
 );
+
 
 router.get(
   "/single/:id",

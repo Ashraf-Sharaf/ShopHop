@@ -1,12 +1,48 @@
 const Order = require("../models/Order");
+const Product = require("../models/Product");
+const Cart = require("../models/Cart");
 
 exports.createOrder = async (req, res) => {
   try {
-    const { orderItems, shippingAddress, notes } = req.body;
-    const totalPrice = orderItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
+    const { shippingAddress, notes } = req.body;
+
+    const cart = await Cart.findOne({ user: req.user.userId }).populate(
+      "items.product"
     );
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: "Your cart is empty" });
+    }
+
+    const orderItems = [];
+    let totalPrice = 0;
+
+    for (const item of cart.items) {
+      const product = item.product;
+
+      if (!product) {
+        return res
+          .status(400)
+          .json({ message: "One of the products no longer exists" });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          message: `Product ${product.name} does not have enough stock`,
+        });
+      }
+
+      product.stock -= item.quantity;
+      await product.save();
+
+      orderItems.push({
+        product: product._id,
+        quantity: item.quantity,
+        price: product.price,
+      });
+
+      totalPrice += product.price * item.quantity;
+    }
 
     const order = new Order({
       user: req.user.userId,
@@ -17,17 +53,22 @@ exports.createOrder = async (req, res) => {
     });
 
     const createdOrder = await order.save();
-    res
-      .status(201)
-      .json({ message: "Order placed successfully", order: createdOrder });
+
+    cart.items = [];
+    cart.updatedAt = new Date();
+    await cart.save();
+
+    res.status(201).json({
+      message: "Order placed successfully",
+      order: createdOrder,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to create order", error: error.message });
+    res.status(500).json({
+      message: "Failed to create order",
+      error: error.message,
+    });
   }
 };
-
-
 
 exports.getOrder = async (req, res) => {
   try {
@@ -104,6 +145,14 @@ exports.cancelOrder = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Only pending orders can be cancelled" });
+    }
+
+    for (const item of order.orderItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.quantity;
+        await product.save();
+      }
     }
 
     order.status = "cancelled";
