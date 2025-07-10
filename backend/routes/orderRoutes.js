@@ -13,11 +13,15 @@ router.post(
     body("shippingAddress")
       .notEmpty()
       .withMessage("Shipping address is required"),
+    body("shippingAddress.phone")
+      .notEmpty()
+      .withMessage("Phone is required")
+      .matches(/^\d{7,15}$/)
+      .withMessage("Phone must be a valid number with 7 to 15 digits"),
   ],
   validateMiddleware,
   orderController.createOrder
 );
-
 
 router.get(
   "/single/:id",
