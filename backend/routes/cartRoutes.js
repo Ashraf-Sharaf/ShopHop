@@ -1,8 +1,10 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const { body, param } = require("express-validator");
+
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
+const validateMiddleware = require("../middleware/validateMiddleware");
 const cartController = require("../controllers/cartController");
 
 router.get("/", authMiddleware, cartController.getCart);
@@ -10,33 +12,28 @@ router.get("/", authMiddleware, cartController.getCart);
 router.post(
   "/item",
   authMiddleware,
-  (req, res, next) => {
-    const { product, quantity } = req.body;
-
-    if (!product || !mongoose.Types.ObjectId.isValid(product)) {
-      return res.status(400).json({ message: "Invalid or missing product ID" });
-    }
-
-    if (!quantity || quantity < 1) {
-      return res.status(400).json({ message: "Quantity must be at least 1" });
-    }
-
-    next();
-  },
+  [
+    body("product")
+      .notEmpty()
+      .withMessage("Product ID is required")
+      .isMongoId()
+      .withMessage("Invalid product ID"),
+    body("quantity")
+      .isInt({ min: 1 })
+      .withMessage("Quantity must be at least 1"),
+  ],
+  validateMiddleware,
   cartController.addOrUpdateItem
 );
 
 router.delete(
   "/item/:id",
   authMiddleware,
-  (req, res, next) => {
-    const productId = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: "Invalid product ID" });
-    }
-    next();
-  },
+  [param("id").isMongoId().withMessage("Invalid product ID")],
+  validateMiddleware,
   cartController.removeItem
 );
+
+router.delete("/empty", authMiddleware, cartController.emptyCart);
 
 module.exports = router;
