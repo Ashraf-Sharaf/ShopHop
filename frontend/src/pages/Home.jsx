@@ -1,27 +1,45 @@
-import { Box, Button, Container, Typography, useTheme } from "@mui/material";
+import { Box, Button, Container, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import HeroImage from "../assets/HeroBackground.jpg";
+import theme from "../theme/theme";
 
 export default function Home() {
-  const theme = useTheme();
   return (
     <Box
       sx={{
+        position: "relative",
         backgroundImage: `url(${HeroImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        minHeight: "80vh",
+        minHeight: "calc(100vh - 64px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
         px: 2,
-        color: "white",
-        textShadow: "6px 6px 30px rgba(0, 0, 0, 1)",
       }}
     >
-      <Container maxWidth="md">
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          zIndex: 1,
+        }}
+      />
+      <Container
+        maxWidth="md"
+        sx={{
+          position: "relative",
+          zIndex: 2,
+          color: theme.palette.secondary.light,
+          mt: -16,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -31,7 +49,10 @@ export default function Home() {
             variant="h2"
             component="h1"
             gutterBottom
-            sx={{ fontWeight: "bold" }}
+            sx={{
+              fontWeight: "bold",
+              textShadow: "2px 2px 6px rgba(0,0,0,0.6)",
+            }}
           >
             Welcome to ShopHop
           </Typography>
@@ -42,7 +63,14 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.2 }}
         >
-          <Typography variant="h5" paragraph>
+          <Typography
+            variant="h5"
+            paragraph
+            sx={{
+              fontWeight: "bold",
+              textShadow: "1px 1px 4px rgba(0,0,0,0.5)",
+            }}
+          >
             Your one-stop shop for daily essentials at great prices.
           </Typography>
         </motion.div>
