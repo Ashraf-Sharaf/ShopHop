@@ -14,30 +14,45 @@ export default function CategorySection() {
       name: "Fresh Produce",
       description: "Fruits, vegetables, herbs",
       icon: LocalGroceryStoreIcon,
+      backgroundColor: "rgba(76, 175, 80, 0.15)",
+      iconColor: "#4caf50",
+      cardColor: "#4caf50",
     },
     {
       id: 2,
       name: "Dairy & Eggs",
       description: "Milk, cheese, yogurt, eggs",
       icon: BreakfastDiningIcon,
+      backgroundColor: "rgba(255, 245, 157, 0.3)",
+      iconColor: "#fdd835",
+      cardColor: "#fdd835",
     },
     {
       id: 3,
       name: "Snacks & Beverages",
       description: "Chips, biscuits, water, juices",
       icon: FastfoodIcon,
+      backgroundColor: "rgba(255, 152, 0, 0.15)",
+      iconColor: "#ff9800",
+      cardColor: "#ff9800",
     },
     {
       id: 4,
       name: "Pantry Staples",
       description: "Rice, pasta, oil, spices",
       icon: KitchenIcon,
+      backgroundColor: "rgba(141, 110, 99, 0.15)",
+      iconColor: "#8d6e63",
+      cardColor: "#8d6e63",
     },
     {
       id: 5,
       name: "Household Essentials",
       description: "Cleaning supplies, detergents",
       icon: CleaningServicesIcon,
+      backgroundColor: "rgba(33, 150, 243, 0.15)",
+      iconColor: "#2196f3",
+      cardColor: "#2196f3",
     },
   ];
 
@@ -109,9 +124,11 @@ export default function CategorySection() {
                     flexDirection: "column",
                     borderRadius: 2,
                     boxShadow: 3,
+                    border: `2px solid ${category.cardColor}`,
                     transition: "box-shadow 0.3s ease-in-out",
                     "&:hover": {
                       boxShadow: 6,
+                      border: `3px solid ${category.cardColor}`,
                     },
                   }}
                 >
@@ -122,15 +139,15 @@ export default function CategorySection() {
                         justifyContent: "center",
                         alignItems: "center",
                         height: 200,
-                        backgroundColor: "rgba(76, 175, 80, 0.1)",
-                        color: theme.palette.primary.main,
+                        backgroundColor: category.backgroundColor,
+                        color: category.iconColor,
                       }}
                     >
                       {category.icon && (
                         <category.icon
                           sx={{
                             fontSize: 80,
-                            color: theme.palette.primary.main,
+                            color: category.iconColor,
                           }}
                         />
                       )}
@@ -142,7 +159,7 @@ export default function CategorySection() {
                         gutterBottom
                         sx={{
                           fontWeight: "bold",
-                          color: theme.palette.primary.main,
+                          color: category.cardColor,
                         }}
                       >
                         {category.name}
