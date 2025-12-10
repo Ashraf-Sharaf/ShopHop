@@ -7,7 +7,8 @@ const productRoutes = require('./routes/productRoutes')
 const userRoutes = require('./routes/userRoutes')
 const orderRoutes = require('./routes/orderRoutes')
 const adminRoutes = require('./routes/adminRoutes')
-const cartRoutes = require('./routes/cartRoutes')
+const cartRoutes = require('./routes/cartRoutes') 
+const categoryRoutes = require('./routes/categoryRoutes')
 
 dotenv.config()
 
@@ -39,7 +40,8 @@ app.get('/', (req, res) => {
       users: '/api/users',
       orders: '/api/orders',
       cart: '/api/cart',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      categories: '/api/categories'
     }
   })
 })
@@ -49,7 +51,8 @@ app.use('/api/products', productRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/admin', adminRoutes)
-app.use('/api/cart', cartRoutes)
+app.use('/api/cart', cartRoutes)  
+app.use('/api/categories', categoryRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' })
