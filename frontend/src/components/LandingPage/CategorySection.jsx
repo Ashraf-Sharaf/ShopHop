@@ -1,4 +1,5 @@
-import { Box, Container, Typography, Card, CardContent, CardActionArea } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, Container, Typography, Card, CardContent, CardActionArea, CircularProgress, Alert } from "@mui/material";
 import { motion } from "framer-motion";
 import LocalGroceryStoreIcon from "@mui/icons-material/LocalGroceryStore";
 import BreakfastDiningIcon from "@mui/icons-material/BreakfastDining";
@@ -7,54 +8,87 @@ import KitchenIcon from "@mui/icons-material/Kitchen";
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 import theme from "../../theme/theme";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+const getIconComponent = (iconName) => {
+  const iconMap = {
+    LocalGroceryStoreIcon: LocalGroceryStoreIcon,
+    BreakfastDiningIcon: BreakfastDiningIcon,
+    FastfoodIcon: FastfoodIcon,
+    KitchenIcon: KitchenIcon,
+    CleaningServicesIcon: CleaningServicesIcon,
+  };
+  return iconMap[iconName] || LocalGroceryStoreIcon;
+};
+
 export default function CategorySection() {
-  const categories = [
-    {
-      id: 1,
-      name: "Fresh Produce",
-      description: "Fruits, vegetables, herbs",
-      icon: LocalGroceryStoreIcon,
-      backgroundColor: "rgba(76, 175, 80, 0.15)",
-      iconColor: "#4caf50",
-      cardColor: "#4caf50",
-    },
-    {
-      id: 2,
-      name: "Dairy & Eggs",
-      description: "Milk, cheese, yogurt, eggs",
-      icon: BreakfastDiningIcon,
-      backgroundColor: "rgba(255, 245, 157, 0.3)",
-      iconColor: "#fdd835",
-      cardColor: "#fdd835",
-    },
-    {
-      id: 3,
-      name: "Snacks & Beverages",
-      description: "Chips, biscuits, water, juices",
-      icon: FastfoodIcon,
-      backgroundColor: "rgba(255, 152, 0, 0.15)",
-      iconColor: "#ff9800",
-      cardColor: "#ff9800",
-    },
-    {
-      id: 4,
-      name: "Pantry Staples",
-      description: "Rice, pasta, oil, spices",
-      icon: KitchenIcon,
-      backgroundColor: "rgba(141, 110, 99, 0.15)",
-      iconColor: "#8d6e63",
-      cardColor: "#8d6e63",
-    },
-    {
-      id: 5,
-      name: "Household Essentials",
-      description: "Cleaning supplies, detergents",
-      icon: CleaningServicesIcon,
-      backgroundColor: "rgba(33, 150, 243, 0.15)",
-      iconColor: "#2196f3",
-      cardColor: "#2196f3",
-    },
-  ];
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}/api/categories`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        const mappedCategories = data.map((category) => ({
+          ...category,
+          icon: getIconComponent(category.icon),
+        }));
+        
+        setCategories(mappedCategories);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          py: 8,
+          backgroundColor: theme.palette.background.default,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          py: 8,
+          backgroundColor: theme.palette.background.default,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Alert severity="error">
+            Failed to load categories: {error}
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -103,7 +137,7 @@ export default function CategorySection() {
         >
           {categories.map((category, index) => (
             <Box
-              key={category.id}
+              key={category._id || category.id || index}
               sx={{
                 flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(20% - 19.2px)" },
                 minWidth: 0,
