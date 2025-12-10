@@ -4,7 +4,7 @@ const router = express.Router();
 const validateMiddleware = require("../middleware/validateMiddleware");
 const productController = require("../controllers/productController");
 
-router.get("/", productController.getAllProdcuts);
+router.get("/", productController.getAllProducts);
 
 router.get(
   "/:id",

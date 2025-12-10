@@ -21,15 +21,27 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => {
+  console.log('✅ MongoDB connected successfully')
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    console.log(`🚀 Server running on port ${PORT}`)
   })
 }).catch((error) => {
-  console.error('MongoDB connection error:', error)
+  console.error('❌ MongoDB connection error:', error.message)
+  process.exit(1)
 })
 
 app.get('/', (req, res) => {
-  res.send('ShopHop backend is live')
+  res.json({ 
+    message: 'ShopHop backend is live',
+    version: '1.0.0',
+    endpoints: {
+      products: '/api/products',
+      users: '/api/users',
+      orders: '/api/orders',
+      cart: '/api/cart',
+      admin: '/api/admin'
+    }
+  })
 })
 
 
@@ -38,4 +50,13 @@ app.use('/api/users', userRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/cart', cartRoutes)
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' })
+})
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err)
+  res.status(500).json({ message: 'Internal server error' })
+})
 
