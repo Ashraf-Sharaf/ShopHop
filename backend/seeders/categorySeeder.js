@@ -22,7 +22,7 @@ const categories = [
   },
   {
     name: "Snacks & Beverages",
-    description: "Chips, biscuits, water, juices",
+    description: "Chips, water, juices",
     icon: "FastfoodIcon",
     backgroundColor: "rgba(255, 152, 0, 0.15)",
     iconColor: "#ff9800",

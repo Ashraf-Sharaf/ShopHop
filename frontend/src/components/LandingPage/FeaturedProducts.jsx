@@ -1,55 +1,95 @@
-import { Box, Container, Typography, Card, CardContent, CardMedia, CardActionArea, Button, Chip } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  CardMedia,
+  CardActionArea,
+  Button,
+  Chip,
+} from "@mui/material";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import theme from "../../theme/theme";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 export default function FeaturedProducts() {
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Organic Bananas",
-      category: "Fresh Produce",
-      price: 2.5,
-      image: "https://via.placeholder.com/300x300?text=Organic+Bananas",
-      stock: 30,
-      description: "Fresh organic bananas from local farms",
-      soldCount: 15,
-      featured: true,
-    },
-    {
-      id: 2,
-      name: "Whole Wheat Bread",
-      category: "Pantry Staples",
-      price: 3.2,
-      image: "https://via.placeholder.com/300x300?text=Whole+Wheat+Bread",
-      stock: 20,
-      description: "Soft and healthy whole wheat bread",
-      soldCount: 10,
-      featured: true,
-    },
-    {
-      id: 3,
-      name: "Cheddar Cheese",
-      category: "Dairy & Eggs",
-      price: 5.5,
-      image: "https://via.placeholder.com/300x300?text=Cheddar+Cheese",
-      stock: 12,
-      description: "Sharp cheddar cheese block",
-      soldCount: 25,
-      featured: true,
-    },
-    {
-      id: 4,
-      name: "Tomato Ketchup",
-      category: "Pantry Staples",
-      price: 1.8,
-      image: "https://via.placeholder.com/300x300?text=Tomato+Ketchup",
-      stock: 50,
-      description: "Classic tomato ketchup in squeeze bottle",
-      soldCount: 40,
-      featured: true,
-    },
-  ];
+  // const featuredProducts = [
+  //   {
+  //     id: 1,
+  //     name: "Organic Bananas",
+  //     category: "Fresh Produce",
+  //     price: 2.5,
+  //     image: "https://via.placeholder.com/300x300?text=Organic+Bananas",
+  //     stock: 30,
+  //     description: "Fresh organic bananas from local farms",
+  //     soldCount: 15,
+  //     featured: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Whole Wheat Bread",
+  //     category: "Pantry Staples",
+  //     price: 3.2,
+  //     image: "https://via.placeholder.com/300x300?text=Whole+Wheat+Bread",
+  //     stock: 20,
+  //     description: "Soft and healthy whole wheat bread",
+  //     soldCount: 10,
+  //     featured: true,
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Cheddar Cheese",
+  //     category: "Dairy & Eggs",
+  //     price: 5.5,
+  //     image: "https://via.placeholder.com/300x300?text=Cheddar+Cheese",
+  //     stock: 12,
+  //     description: "Sharp cheddar cheese block",
+  //     soldCount: 25,
+  //     featured: true,
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Tomato Ketchup",
+  //     category: "Pantry Staples",
+  //     price: 1.8,
+  //     image: "https://via.placeholder.com/300x300?text=Tomato+Ketchup",
+  //     stock: 50,
+  //     description: "Classic tomato ketchup in squeeze bottle",
+  //     soldCount: 40,
+  //     featured: true,
+  //   },
+  // ];
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${BASE_URL}/api/products`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Shuffle + get 4 random products
+        const randomFour = data.sort(() => Math.random() - 0.5).slice(0, 4);
+
+        setFeaturedProducts(randomFour);
+
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching featured products:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeaturedProducts();
+  }, []);
 
   const handleAddToCart = (productId) => {
     console.log("Add to cart:", productId);
@@ -105,8 +145,16 @@ export default function FeaturedProducts() {
             <Box
               key={product.id}
               sx={{
-                flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" },
-                maxWidth: { xs: "100%", sm: "calc(50% - 12px)", md: "calc(25% - 18px)" },
+                flex: {
+                  xs: "1 1 100%",
+                  sm: "1 1 calc(50% - 12px)",
+                  md: "1 1 calc(25% - 18px)",
+                },
+                maxWidth: {
+                  xs: "100%",
+                  sm: "calc(50% - 12px)",
+                  md: "calc(25% - 18px)",
+                },
                 minWidth: 0,
               }}
             >
@@ -153,7 +201,13 @@ export default function FeaturedProducts() {
                       />
                     )}
                   </Box>
-                  <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <Typography
                       variant="caption"
                       color="text.secondary"
@@ -222,4 +276,3 @@ export default function FeaturedProducts() {
     </Box>
   );
 }
-
